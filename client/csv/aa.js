@@ -1,5 +1,5 @@
 import React from "react";
-import { getFunctions, voteForPost } from '../../api/posts.js';
+import { getFunctions, voteForPost } from '../api/posts.js';
 
 const CsvDownload = () => {
   const handleDownload = () => {

@@ -82,13 +82,12 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  font-size: 24px;
   cursor: pointer;
-  color: #333;
-  transition: color 0.3s ease-in-out;
+  transition: 0.2s ease-in-out;
+  opacity: 0.7;
 }
 .modalOverlay .modalContent .closeIcon:hover {
-  color: #000;
+  opacity: 1;
 }
 .modalOverlay .modalContent .functionList {
   margin-top: 20px;
@@ -149,7 +148,46 @@
   margin-bottom: 15px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-right: 25px;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .smileyWrapper {
+  display: flex;
+  gap: 10px;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .smileyWrapper .smiley {
+  width: 27px;
+  font-size: 2rem;
+  cursor: pointer;
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.2s ease-in-out;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .smileyWrapper .smiley:hover {
+  transform: scale(1.2);
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .voteSuccessMessage {
+  color: green;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .voteDisabled {
+  cursor: not-allowed;
+  color: gray;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .clickable {
+  opacity: 1;
+}
+.modalOverlay .modalContent .featureItem .smileyContainer .smileyDisabled {
+  cursor: not-allowed;
+  color: gray;
 }
 .modalOverlay .modalContent .featureItem button {
   padding: 5px 10px;
@@ -222,6 +260,16 @@
   width: 140px;
   height: auto;
   margin: 10px 0;
+}
+
+.smileyIcon {
+  width: 27px;
+  height: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+.smileyIcon:hover {
+  transform: scale(1.2);
 }
 
 /*# sourceMappingURL=Modal.module.css.map */

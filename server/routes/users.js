@@ -14,7 +14,6 @@ router.get('/', async (req, res) => {
 });
 
 
-
 router.get('/:id', async (req, res) => {
   const userId = req.params.id;
   try {
@@ -22,28 +21,28 @@ router.get('/:id', async (req, res) => {
     if (rows.length > 0) {
       res.json(rows[0]);
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'Пользователя не существует' });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Database error' });
+    res.status(500).json({ message: 'Ошибка БД' });
   }
 });
 
 
-router.post('/', async (req, res) => {
-  const { name, email } = req.body;
-  try {
-    const [result] = await db.query('INSERT INTO users (name, email) VALUES (?, ?)', [name, email]);
-    res.status(201).json({ id: result.insertId, name, email });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Database error' });
-  }
-});
+// router.post('/', async (req, res) => {
+//   const { name, email } = req.body;
+//   try {
+//     const [result] = await db.query('INSERT INTO users (name, email) VALUES (?, ?)', [name, email]);
+//     res.status(201).json({ id: result.insertId, name, email });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Database error' });
+//   }
+// });
 
 router.post('/posts/:id/votes', async (req, res) => {
-  const { id } = req.params;
+  // const { id } = req.params;
   const { id_user, id_functions, id_vote, ip } = req.body;
 
   try {

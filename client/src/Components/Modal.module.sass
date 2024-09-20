@@ -79,12 +79,11 @@
       position: absolute
       top: 10px
       right: 10px
-      font-size: 24px
       cursor: pointer
-      color: #333
-      transition: color 0.3s ease-in-out
+      transition: 0.2s ease-in-out
+      opacity: 0.7
       &:hover
-        color: #000
+        opacity: 1
 
     .functionList
       margin-top: 20px
@@ -139,7 +138,38 @@
       margin-bottom: 15px
       display: flex
       justify-content: space-between
-      align-items: center
+      flex-direction: column
+      .smileyContainer
+        display: flex
+        justify-content: flex-end
+        margin-top: 10px
+        padding-right: 25px
+        .smileyWrapper
+          display: flex
+          gap: 10px
+          .smiley
+            width: 27px
+            font-size: 2rem
+            cursor: pointer
+            will-change: transform
+            transform: translateZ(0)
+            transition: transform 0.2s ease-in-out
+            &:hover
+              transform: scale(1.2)
+        .voteSuccessMessage
+          color: green
+        .voteDisabled
+          cursor: not-allowed
+          color: gray
+        .disabled
+          opacity: 0.5
+          pointer-events: none
+        .clickable
+          opacity: 1
+          //pointer-events: none
+        .smileyDisabled
+          cursor: not-allowed
+          color: gray
 
       button
         padding: 5px 10px
@@ -204,3 +234,11 @@
         width: 140px
         height: auto
         margin: 10px 0
+
+.smileyIcon
+    width: 27px
+    height: auto
+    cursor: pointer
+    transition: transform 0.2s ease-in-out
+    &:hover
+      transform: scale(1.2)

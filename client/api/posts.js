@@ -38,7 +38,69 @@ export const voteForPost = async (voteData) => {
     }
 };
 
+export const checkIfAdmin = async (email) => {
+    try {
+        const response = await fetch('http://localhost:3000/api/users/is-admin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+        });
 
+        if (!response.ok) {
+            throw new Error('Ошибка при проверке администратора');
+        }
+
+        const data = await response.json();
+        return data.isAdmin;  // Возвращаем результат проверки администратора
+    } catch (error) {
+        console.error('Ошибка проверки администратора:', error);
+        return false;  // В случае ошибки возвращаем значение по умолчанию
+    }
+};
+
+// Функция для добавления новой категории
+export const handleAddCategory = async () => {
+    if (!newCategoryTitle.trim()) return;
+    try {
+        const response = await fetch('http://localhost:3000/api/categories', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title: newCategoryTitle }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка добавления категории');
+        }
+
+        const newCategory = await response.json();
+        setCategories([...categories, newCategory]);
+        setNewCategoryTitle(''); // Очистка поля
+    } catch (error) {
+        console.error('Ошибка добавления категории:', error);
+    }
+};
+
+// Функция для удаления категории
+export const handleDeleteCategory = async (categoryId) => {
+    try {
+        const response = await fetch(`http://localhost:3000/api/categories/${categoryId}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка удаления категории');
+        }
+
+        // Обновляем список категорий после удаления
+        setCategories(categories.filter((category) => category.id !== categoryId));
+    } catch (error) {
+        console.error('Ошибка удаления категории:', error);
+    }
+};
 
 // Еще не подключено
 
@@ -114,20 +176,8 @@ export const updatePost = async (id, post) => {
     }
 };
 
-// Удаление поста
-export const deletePost = async (id) => {
-    try {
-        const response = await fetch(`${API_URL}/${id}`, {
-            method: 'DELETE',
-        });
-        if (!response.ok) {
-            throw new Error('Ошибка при удалении поста');
-        }
-        return await response.json();
-    } catch (error) {
-        console.error(error);
-    }
-};
+
+
 
 
 
