@@ -10,7 +10,7 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: 'http://localhost:5174' //5173
+  origin: 'http://localhost:5173' //5173
 }));
 
 app.use(bodyParser.json());
@@ -54,6 +54,43 @@ app.get('/api/posts/:id', async (req, res) => {
   }
 });
 
+app.get('/api/votes', async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM votes');
+    if (!results) {
+      console.log('Нет результатов');
+      return res.status(404).send('Нет данных');
+    }
+    res.json(results);
+  } catch (error) {
+    console.error('Ошибка получения данных голосования:', error);
+    res.status(500).send('Ошибка сервера');
+  }
+});
+
+app.get('/api/features/:id', async (req, res) => {
+  const featureId = req.params.id;
+
+  try {
+    const feature = await db.query(`
+            SELECT f.id, f.title, f.description, f.status, f.created_at, f.id_functions, v.id_vote
+            FROM features f
+            LEFT JOIN votes v ON f.id = v.id_functions
+            WHERE f.id = ?
+        `, [featureId]);
+
+    if (feature.length === 0) {
+      return res.status(404).json({ message: 'Фича не найдена' });
+    }
+
+    // Возвращаем данные о фиче и соответствующий id_vote
+    res.json(feature[0]);
+  } catch (error) {
+    console.error('Ошибка при получении данных фичи:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
 // Принятие голосов (POST /api/votes)
 app.post('/api/votes', async (req, res) => {
   console.log('Тело запроса:', req.body);
@@ -76,6 +113,7 @@ app.post('/api/votes', async (req, res) => {
     res.status(500).json({ message: 'Ошибка базы данных' });
   }
 });
+
 
 // Маршрут для проверки email
 app.post('/api/users/is-admin', (req, res) => {

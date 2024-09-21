@@ -1,12 +1,7 @@
-import { useState, useEffect } from 'react';
-import {
-    getFunctions,
-    voteForPost,
-    checkIfAdmin,
-    handleDeleteCategory,
-    handleAddCategory,
-} from '../../api/posts';
+import React, { useState, useEffect } from 'react';
+import {fetchVotesData, getFunctions, voteForPost} from '../../api/posts.js';
 import styles from './Modal.module.sass';
+import CsvDownload from "../../csv/CsvDownload.jsx";
 
 interface Feature {
     id: number;
@@ -34,7 +29,18 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     const [emailError, setEmailError] = useState<string>('');
     const [votedFunctions, setVotedFunctions] = useState<Set<number>>(new Set());
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [newCategoryTitle, setNewCategoryTitle] = useState<string>('');
+    // const [newCategoryTitle, setNewCategoryTitle] = useState<string>('');
+
+    useEffect(() => {
+        if (email) {
+            const checkAdminStatus = () => {
+                setIsAdmin(email === 'admin@admin.ru');
+            };
+
+            checkAdminStatus();
+        }
+    }, [email]);
+
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -76,20 +82,20 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     }, []);
 
     // Проверка на администратора при изменении email
-    useEffect(() => {
-        if (email) {
-            const checkAdminStatus = async () => {
-                try {
-                    const isAdminUser = await checkIfAdmin(email);
-                    setIsAdmin(isAdminUser);
-                } catch (error) {
-                    console.error('Ошибка при проверке статуса администратора:', error);
-                }
-            };
-
-            checkAdminStatus();
-        }
-    }, [email]);
+    // useEffect(() => {
+    //     if (email) {
+    //         const checkAdminStatus = async () => {
+    //             try {
+    //                 const isAdminUser = await checkIfAdmin(email);
+    //                 setIsAdmin(isAdminUser);
+    //             } catch (error) {
+    //                 console.error('Ошибка при проверке статуса администратора:', error);
+    //             }
+    //         };
+    //
+    //         checkAdminStatus();
+    //     }
+    // }, [email]);
 
     // Фильтрация фич по категории
     const filteredFeatures = features.filter(feature => feature.id_functions === selectedCategory?.id);
@@ -98,7 +104,23 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
 
     const goToPreviousStep = () => setStep(step - 1);
 
-    const handleVote = async (feature: Feature, rating:number) => {
+
+    const getFeatureDetails = async (featureId) => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/features/${featureId}`);
+            if (!response.ok) {
+                const text = await response.text(); // Получаем текст ответа для отладки
+                console.error('Ошибка при получении данных фичи:', text); // Выводим текст
+                throw new Error('Ошибка при получении данных фичи');
+            }
+            return await response.json(); // Возвращаем данные фичи, включая id_vote
+        } catch (error) {
+            console.error('Ошибка при получении данных фичи:', error);
+            return null;
+        }
+    };
+
+    const handleVote = async (feature, rating) => {
         try {
             const userId = 2; // Замените на динамический userId
             const response = await fetch('https://api.ipify.org?format=json');
@@ -110,13 +132,26 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                 return;
             }
 
+            // Получаем id_vote для выбранной функции
+            let featureDetails = await getFeatureDetails(feature.id);
+
+            if (!featureDetails) {
+                console.error('Не удалось получить данные фичи');
+                return;
+            }
+
+            // Если id_vote еще не установлен, используем id фичи
+            if (!featureDetails.id_vote) {
+                featureDetails.id_vote = feature.id;
+            }
+
             const voteData = {
                 id_functions: feature.id,
                 id_user: userId,
                 status: rating,
-                id_vote: 2,
+                id_vote: featureDetails.id_vote, // Используем id_vote (или id фичи)
                 ip,
-                created_at: new Date(),
+                created_at: new Date()
             };
 
             console.log('Отправляемые данные голосования:', voteData);
@@ -126,7 +161,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
             if (result) {
                 console.log('Голос успешно отправлен');
                 localStorage.setItem(`voted_${feature.id}`, 'true');
-                setVotedFunctions(prev => new Set(prev).add(feature.id));
+                setVotedFunctions((prev) => new Set(prev).add(feature.id));
             } else {
                 throw new Error('Ошибка при голосовании');
             }
@@ -135,17 +170,27 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         }
     };
 
+
+    // Обновляем логику валидации
+    const isFormValid = () => {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return name.trim().length >= 2 && emailPattern.test(email);
+    };
+
+// Функция для обработки изменения имени
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
 
+// Функция для обработки изменения email
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const emailValue = e.target.value;
         setEmail(emailValue);
 
+        // Проверка правильности введенного email
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         setEmailError(emailPattern.test(emailValue) ? '' : 'Указан неверный Емейл');
     };
 
-    const isFormValid = () => name.trim() !== '' && emailError === '';
+    // const isFormValid = () => name.trim() !== '' && emailError === '';
 
     const getSmileyIcon = (rating: number) => {
         const smileys: Record<number, string> = {
@@ -158,16 +203,152 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         return smileys[rating] || '';
     };
 
+    const handleDownload = async (functionId) => {
+        // Проверка, является ли пользователь администратором
+        if (!isAdmin) {
+            console.error('Только администраторы могут загружать данные.');
+            return;
+        }
+
+        try {
+            const votesData = await fetchVotesData();
+
+            if (!votesData || votesData.length === 0) {
+                console.error('Нет данных для экспорта');
+                return;
+            }
+
+            // Фильтруем данные по id_functions
+            const filteredVotes = votesData.filter(vote => vote.id_functions === functionId);
+
+            if (filteredVotes.length === 0) {
+                console.error('Нет голосов для данной функции');
+                return;
+            }
+
+            // Создаем CSV строку
+            const csvRows = [];
+
+            // Обрабатываем каждую запись для создания таблицы
+            filteredVotes.forEach(row => {
+                const headers = ["id", "id_user", "id_functions", "id_vote", "status", "ip", "created_at"];
+                const values = [
+                    row.id,
+                    row.id_user,
+                    row.id_functions,
+                    row.id_vote,
+                    row.status,
+                    row.ip,
+                    row.created_at
+                ];
+
+                // Добавляем заголовки и значения в строки CSV
+                headers.forEach((header, index) => {
+                    csvRows.push(`${header},${values[index]}`);
+                });
+
+                // Добавляем пустую строку между записями
+                csvRows.push('');
+            });
+
+            const csvContent = csvRows.join("\n");
+
+            // Создаем Blob для скачивания
+            const blob = new Blob([csvContent], { type: "text/csv" });
+            const url = window.URL.createObjectURL(blob);
+
+            // Создаем ссылку для скачивания
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `votes_data_function_${functionId}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Ошибка при загрузке данных:', error);
+        }
+    };
+
+    const [votesData, setVotesData] = useState([]);
+
+    useEffect(() => {
+        const fetchVotesData = async () => {
+            const response = await fetch('http://localhost:3000/api/votes'); // ваш API
+            const data = await response.json();
+            setVotesData(data);
+        };
+        fetchVotesData();
+    }, []);
+
+    const calculatePercentage = (featureId) => {
+        const totalVotes = votesData.length; // предположим, у вас есть доступ к данным голосов
+        const featureVotes = votesData.filter(vote => vote.id_functions === featureId).length;
+
+        return totalVotes > 0 ? ((featureVotes / totalVotes) * 100).toFixed(2) : 0;
+    };
+
+    const KanoModel = ({ features, votesData }) => {
+        const totalVotes = votesData.length;
+
+        const calculatePercentage = (featureId) => {
+            const featureVotes = votesData.filter(vote => vote.id_functions === featureId).length;
+            return totalVotes > 0 ? (featureVotes / totalVotes) * 100 : 0;
+        };
+
+        return (
+            <div className={styles.kanoContainer}>
+                {features.map(feature => {
+                    const percentage = calculatePercentage(feature.id);
+                    let barColor = '#007bff';
+                    if (percentage > 75) {
+                        barColor = '#0056b3';
+                    } else if (percentage > 50) {
+                        barColor = '#007bff';
+                    } else if (percentage > 20) {
+                        barColor = '#66b3ff';
+                    } else {
+                        barColor = '#e0e0e0';
+                    }
+
+                    return (
+                        <div key={feature.id} className={styles.kanoItem}>
+                            <div
+                                className={styles.kanoBar}
+                                style={{
+                                    width: `${percentage}%`,
+                                    backgroundColor: barColor
+                                }}
+                            >
+                            <span className={styles.kanoLabel}>
+                                {feature.title} ({percentage.toFixed(2)}%)
+                            </span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+
     return (
         <div className={styles.modalOverlay}>
             <div className={styles.modalContent}>
+                {isAdmin && (
+                    <div className={styles.adminNav}>
+                        <a className={styles.dashboardButton} onClick={() => setStep(4)}>
+                            <img src="./dashboard.png" alt="dashboard"/>
+                        </a>
+                        <CsvDownload />
+                    </div>
+                )}
                 <span className={styles.closeIcon} onClick={onClose}>
                     <img src="/close.svg" alt="Закрыть" />
                 </span>
 
                 {step === 1 && (
                     <>
-                        <h2 className={styles.welc_title}>Голосование</h2>
+                        <h2 className={styles.welc_title}>Примите участие в голосовании</h2>
                         <p className={styles.welc_about}>Введите свое имя и E-mail</p>
                         <div className={styles.formGroupInpt}>
                             <div className={styles.formGroup}>
@@ -179,6 +360,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                                     placeholder="Иван"
                                     className={styles.inpt_name}
                                 />
+                                {name.trim().length < 2 && <p className={`${styles.error} ${styles.show}`}>Имя должно содержать не менее 2 символов</p>}
                             </div>
 
                             <div className={styles.formGroup}>
@@ -217,17 +399,15 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                                         onClick={() => setSelectedCategory(category)}
                                     >
                                         <p>{category.title}</p>
-                                        {isAdmin && ( // Если админ
-                                            <button
-                                                className={styles.deleteButton}
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Предотвращаем выбор категории при клике
-                                                    handleDeleteCategory(category.id);
-                                                }}
-                                            >
-                                                <img src="./close.png" alt="close"/>
-                                            </button>
-                                        )}
+                                        {isAdmin && (
+                                        <a
+                                            onClick={() => handleDownload(category.id)}
+                                            className={styles.downloadButton}
+                                            title={!isAdmin ? 'Только администраторы могут загружать данные.' : ''}
+                                        >
+                                            <img src="./doc.png" alt="doc"/>
+                                        </a>
+                                            )}
                                     </div>
                                 ))
                             ) : (
@@ -235,25 +415,12 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                             )}
                         </div>
 
-                        {isAdmin && ( // Если админ
-                            <div className={styles.functionsInpt}>
-                                <input
-                                    type="text"
-                                    placeholder="Добавить новый функционал"
-                                    value={newCategoryTitle}
-                                    onChange={(e) => setNewCategoryTitle(e.target.value)}
-                                />
-                                <button onClick={handleAddCategory}>Добавить</button>
-                            </div>
-                        )}
-
                         {selectedCategory && (
                             <div className={styles.nextButtonContainer}>
                                 <button className={styles.nextButton} onClick={goToNextStep}>
                                     Далее
                                 </button>
-                                <button className={styles.prevButton} onClick={goToPreviousStep}
-                                        disabled={step === 1 as number}>
+                                <button className={styles.prevButton} onClick={goToPreviousStep} disabled={step === 1}>
                                     Назад
                                 </button>
                             </div>
@@ -318,6 +485,18 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                         </div>
                         <div className={styles.buttonContainer}>
                             <button className={styles.prevButton} onClick={goToPreviousStep}>
+                                Назад
+                            </button>
+                        </div>
+                    </>
+                )}
+                {step === 4 && (
+                    <>
+                        <h2 className={styles.welc_title}>Dashboard</h2>
+                        <p className={styles.welc_about}>В этом разделе вы можете увидеть аналитику</p>
+                        <KanoModel features={features} votesData={votesData} />
+                        <div className={styles.buttonContainer}>
+                            <button className={styles.prevButton} onClick={() => setStep(1)}>
                                 Назад
                             </button>
                         </div>
