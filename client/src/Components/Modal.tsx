@@ -1,17 +1,40 @@
 import { useState, useEffect } from 'react';
-import { getFunctions, voteForPost, checkIfAdmin, handleDeleteCategory, handleAddCategory } from '../../api/posts.js';
+import {
+    getFunctions,
+    voteForPost,
+    checkIfAdmin,
+    handleDeleteCategory,
+    handleAddCategory,
+} from '../../api/posts';
 import styles from './Modal.module.sass';
 
-const Modal = ({ onClose }) => {
-    const [step, setStep] = useState(1);
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [categories, setCategories] = useState([]);
-    const [features, setFeatures] = useState([]);
-    const [emailError, setEmailError] = useState('');
-    const [votedFunctions, setVotedFunctions] = useState(new Set());
-    const [isAdmin, setIsAdmin] = useState(false);
+interface Feature {
+    id: number;
+    title: string;
+    description: string;
+    id_functions: number;
+}
+
+interface Category {
+    id: number;
+    title: string;
+}
+
+interface ModalProps {
+    onClose: () => void;
+}
+
+const Modal: React.FC<ModalProps> = ({ onClose }) => {
+    const [step, setStep] = useState<number>(1);
+    const [name, setName] = useState<string>('');
+    const [email, setEmail] = useState<string>('');
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [features, setFeatures] = useState<Feature[]>([]);
+    const [emailError, setEmailError] = useState<string>('');
+    const [votedFunctions, setVotedFunctions] = useState<Set<number>>(new Set());
+    const [isAdmin, setIsAdmin] = useState<boolean>(false);
+    const [newCategoryTitle, setNewCategoryTitle] = useState<string>('');
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -75,7 +98,7 @@ const Modal = ({ onClose }) => {
 
     const goToPreviousStep = () => setStep(step - 1);
 
-    const handleVote = async (feature, rating) => {
+    const handleVote = async (feature: Feature, rating:number) => {
         try {
             const userId = 2; // Замените на динамический userId
             const response = await fetch('https://api.ipify.org?format=json');
@@ -93,7 +116,7 @@ const Modal = ({ onClose }) => {
                 status: rating,
                 id_vote: 2,
                 ip,
-                created_at: new Date()
+                created_at: new Date(),
             };
 
             console.log('Отправляемые данные голосования:', voteData);
@@ -112,9 +135,9 @@ const Modal = ({ onClose }) => {
         }
     };
 
-    const handleNameChange = (e) => setName(e.target.value);
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
 
-    const handleEmailChange = (e) => {
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const emailValue = e.target.value;
         setEmail(emailValue);
 
@@ -124,8 +147,8 @@ const Modal = ({ onClose }) => {
 
     const isFormValid = () => name.trim() !== '' && emailError === '';
 
-    const getSmileyIcon = (rating) => {
-        const smileys = {
+    const getSmileyIcon = (rating: number) => {
+        const smileys: Record<number, string> = {
             1: '😡', // Очень не доволен
             2: '🙁', // Не доволен
             3: '😐', // Нейтрально
@@ -229,14 +252,14 @@ const Modal = ({ onClose }) => {
                                 <button className={styles.nextButton} onClick={goToNextStep}>
                                     Далее
                                 </button>
-                                <button className={styles.prevButton} onClick={goToPreviousStep} disabled={step === 1}>
+                                <button className={styles.prevButton} onClick={goToPreviousStep}
+                                        disabled={step === 1 as number}>
                                     Назад
                                 </button>
                             </div>
                         )}
                     </>
                 )}
-
 
                 {step === 3 && selectedCategory && (
                     <>
@@ -261,8 +284,8 @@ const Modal = ({ onClose }) => {
                                                                 className={`${styles.smiley} ${styles.clickable}`}
                                                                 onClick={() => handleVote(feature, rating)}
                                                             >
-                                                {getSmileyIcon(rating)}
-                                            </span>
+                                                                {getSmileyIcon(rating)}
+                                                            </span>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -281,8 +304,8 @@ const Modal = ({ onClose }) => {
                                                     <div className={styles.smileyWrapper}>
                                                         {[1, 2, 3, 4, 5].map(rating => (
                                                             <span key={rating} className={`${styles.smiley} ${styles.disabled}`}>
-                                                {getSmileyIcon(rating)}
-                                            </span>
+                                                                {getSmileyIcon(rating)}
+                                                            </span>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -300,8 +323,6 @@ const Modal = ({ onClose }) => {
                         </div>
                     </>
                 )}
-
-
             </div>
         </div>
     );

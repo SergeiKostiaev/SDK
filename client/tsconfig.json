@@ -1,5 +1,23 @@
 {
-  "files": [],
+  "compilerOptions": {
+    "target": "es6", // Установите нужную версию JavaScript
+    "module": "commonjs", // Убедитесь, что модуль соответствует вашему окружению
+    "strict": true, // Включите строгий режим
+    "esModuleInterop": true, // Позволяет использовать импорты CommonJS
+    "skipLibCheck": true, // Пропустить проверку файлов библиотек
+    "forceConsistentCasingInFileNames": true, // Обеспечьте единообразие регистров
+    "outDir": "./dist", // Директория для выходных файлов
+    "baseUrl": "./", // Базовая директория
+    "paths": {
+      "*": ["node_modules/*", "src/types/*"] // Настройка путей
+    }
+  },
+  "include": [
+    "src/**/*", // Включите вашу основную директорию
+    "client/**/*", // Включите клиентскую директорию
+    "api/**/*", // Включите директорию API
+    "global.d.ts" // Включите ваш файл деклараций
+  ],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

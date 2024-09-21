@@ -10,7 +10,7 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: 'http://localhost:5173'
+  origin: 'http://localhost:5174' //5173
 }));
 
 app.use(bodyParser.json());
@@ -23,7 +23,7 @@ app.use('/api/votes', voteRouter);
 app.get('/api/posts', async (req, res) => {
   try {
     const [posts] = await db.query('SELECT * FROM posts');
-    console.log('Полученные посты:', posts);  // Добавьте этот вывод для отладки
+    console.log('Полученные посты:', posts);
     res.json(posts);
   } catch (error) {
     console.error('Ошибка базы данных:', error);
@@ -35,7 +35,6 @@ app.get('/api/posts', async (req, res) => {
 app.get('/api/posts/:id', async (req, res) => {
   const postId = req.params.id;
   try {
-    // Получаем функцию
     const [functionRows] = await db.query('SELECT * FROM functions WHERE id = ?', [postId]);
     if (functionRows.length === 0) {
       return res.status(404).json({ message: 'Функция не найдена' });
@@ -43,7 +42,6 @@ app.get('/api/posts/:id', async (req, res) => {
 
     const func = functionRows[0];
 
-    // Получаем фичи для этой функции
     const [featureRows] = await db.query('SELECT * FROM features WHERE id_functions = ?', [postId]);
 
     // Добавляем фичи к функции
@@ -83,12 +81,11 @@ app.post('/api/votes', async (req, res) => {
 app.post('/api/users/is-admin', (req, res) => {
   const { email } = req.body; // Получаем email из тела запроса
 
-  // Проверяем, что email был передан
   if (!email) {
     return res.status(400).json({ error: 'Email обязателен' });
   }
 
-  // console.log('Полученные данные:', req.body); // Для отладки
+  // console.log('Полученные данные:', req.body);
 
   // SQL-запрос для проверки наличия email
   const query = 'SELECT email, role FROM users WHERE email = ? LIMIT 1'; // Получаем email и роль по переданному email
@@ -101,7 +98,7 @@ app.post('/api/users/is-admin', (req, res) => {
 
     // Если результат найден, проверяем роль пользователя
     if (results.length > 0) {
-      const user = results[0]; // Получаем информацию о пользователе
+      const user = results[0];
 
       // Проверяем, если роль = 'admin', то пользователь является администратором
       const isAdmin = user.role === '3';
