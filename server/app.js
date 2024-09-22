@@ -10,12 +10,14 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Настройка CORS
 app.use(cors({
-  origin: 'http://localhost:5173'
+  origin: 'http://localhost:5173', // Разрешаем доступ только с этого адреса
 }));
 
 app.use(bodyParser.json());
 
+// Подключаем маршруты
 app.use('/api/functions', functionsRouter);
 app.use('/api/features', featuresRouter);
 app.use('/api/votes', voteRouter);
@@ -74,7 +76,7 @@ app.post('/api/posts', async (req, res) => {
     );
     res.status(201).json({ id: result.insertId, title, description, status });
   } catch (error) {
-    console.error(error);
+    console.error('Ошибка базы данных:', error);
     res.status(500).json({ message: 'Ошибка базы данных' });
   }
 });
