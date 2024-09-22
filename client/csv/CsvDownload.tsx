@@ -1,5 +1,5 @@
 import React from "react";
-import { fetchVotesData } from '../api/posts.js';
+import { fetchVotesData } from '../api/posts.ts';
 import styles from '../src/Components/Modal.module.sass';
 
 const CsvDownload = () => {

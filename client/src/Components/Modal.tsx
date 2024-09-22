@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {fetchVotesData, getFunctions, voteForPost} from '../../api/posts.js';
 import styles from './Modal.module.sass';
-import CsvDownload from "../../csv/CsvDownload.jsx";
+import {fetchVotesData, getFunctions, voteForPost} from '../../api/posts';
+import CsvDownload from "../../csv/CsvDownload";
 
 interface Feature {
     id: number;
@@ -81,21 +81,6 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         setVotedFunctions(new Set(votedFunctionsFromStorage));
     }, []);
 
-    // Проверка на администратора при изменении email
-    // useEffect(() => {
-    //     if (email) {
-    //         const checkAdminStatus = async () => {
-    //             try {
-    //                 const isAdminUser = await checkIfAdmin(email);
-    //                 setIsAdmin(isAdminUser);
-    //             } catch (error) {
-    //                 console.error('Ошибка при проверке статуса администратора:', error);
-    //             }
-    //         };
-    //
-    //         checkAdminStatus();
-    //     }
-    // }, [email]);
 
     // Фильтрация фич по категории
     const filteredFeatures = features.filter(feature => feature.id_functions === selectedCategory?.id);
@@ -105,7 +90,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     const goToPreviousStep = () => setStep(step - 1);
 
 
-    const getFeatureDetails = async (featureId) => {
+    const getFeatureDetails = async (featureId:any) => {
         try {
             const response = await fetch(`http://localhost:3000/api/features/${featureId}`);
             if (!response.ok) {
@@ -120,7 +105,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         }
     };
 
-    const handleVote = async (feature, rating) => {
+    const handleVote = async (feature:any, rating:any) => {
         try {
             const userId = 2; // Замените на динамический userId
             const response = await fetch('https://api.ipify.org?format=json');
@@ -203,7 +188,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         return smileys[rating] || '';
     };
 
-    const handleDownload = async (functionId) => {
+    const handleDownload = async (functionId:any) => {
         // Проверка, является ли пользователь администратором
         if (!isAdmin) {
             console.error('Только администраторы могут загружать данные.');
@@ -219,7 +204,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
             }
 
             // Фильтруем данные по id_functions
-            const filteredVotes = votesData.filter(vote => vote.id_functions === functionId);
+            const filteredVotes = votesData.filter((vote: { id_functions: any; }) => vote.id_functions === functionId);
 
             if (filteredVotes.length === 0) {
                 console.error('Нет голосов для данной функции');
@@ -227,10 +212,10 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
             }
 
             // Создаем CSV строку
-            const csvRows = [];
+            const csvRows:any = [];
 
             // Обрабатываем каждую запись для создания таблицы
-            filteredVotes.forEach(row => {
+            filteredVotes.forEach((row: { id: any; id_user: any; id_functions: any; id_vote: any; status: any; ip: any; created_at: any; }) => {
                 const headers = ["id", "id_user", "id_functions", "id_vote", "status", "ip", "created_at"];
                 const values = [
                     row.id,
@@ -280,55 +265,65 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         fetchVotesData();
     }, []);
 
-    const calculatePercentage = (featureId) => {
-        const totalVotes = votesData.length; // предположим, у вас есть доступ к данным голосов
-        const featureVotes = votesData.filter(vote => vote.id_functions === featureId).length;
+    // const calculatePercentage = (featureId: number) => {
+    //     const totalVotes = votesData.length; // Предположим, у вас есть доступ к данным голосов
+    //     const featureVotes = votesData.filter((vote: VoteData) => vote.id_functions === featureId).length;
+    //
+    //     return totalVotes > 0 ? ((featureVotes / totalVotes) * 100).toFixed(2) : 0;
+    // };
 
-        return totalVotes > 0 ? ((featureVotes / totalVotes) * 100).toFixed(2) : 0;
-    };
 
-    const KanoModel = ({ features, votesData }) => {
-        const totalVotes = votesData.length;
 
-        const calculatePercentage = (featureId) => {
-            const featureVotes = votesData.filter(vote => vote.id_functions === featureId).length;
-            return totalVotes > 0 ? (featureVotes / totalVotes) * 100 : 0;
-        };
+    class KanoModel extends React.Component<{ features: any, votesData: any }> {
+        render() {
+            let {features, votesData} = this.props;
+            const totalVotes = votesData.length;
 
-        return (
-            <div className={styles.kanoContainer}>
-                {features.map(feature => {
-                    const percentage = calculatePercentage(feature.id);
-                    let barColor = '#007bff';
-                    if (percentage > 75) {
-                        barColor = '#0056b3';
-                    } else if (percentage > 50) {
-                        barColor = '#007bff';
-                    } else if (percentage > 20) {
-                        barColor = '#66b3ff';
-                    } else {
-                        barColor = '#e0e0e0';
-                    }
+            const calculatePercentage = (featureId: any) => {
+                const featureVotes = votesData.filter((vote: {
+                    id_functions: any;
+                }) => vote.id_functions === featureId).length;
+                return totalVotes > 0 ? (featureVotes / totalVotes) * 100 : 0;
+            };
 
-                    return (
-                        <div key={feature.id} className={styles.kanoItem}>
-                            <div
-                                className={styles.kanoBar}
-                                style={{
-                                    width: `${percentage}%`,
-                                    backgroundColor: barColor
-                                }}
-                            >
+            return (
+                <div className={styles.kanoContainer}>
+                    {features.map((feature: {
+                        id: React.Key | null | undefined;
+                        title: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
+                    }) => {
+                        const percentage = calculatePercentage(feature.id);
+                        let barColor = '#007bff';
+                        if (percentage > 75) {
+                            barColor = '#0056b3';
+                        } else if (percentage > 50) {
+                            barColor = '#007bff';
+                        } else if (percentage > 20) {
+                            barColor = '#66b3ff';
+                        } else {
+                            barColor = '#e0e0e0';
+                        }
+
+                        return (
+                            <div key={feature.id} className={styles.kanoItem}>
+                                <div
+                                    className={styles.kanoBar}
+                                    style={{
+                                        width: `${percentage}%`,
+                                        backgroundColor: barColor
+                                    }}
+                                >
                             <span className={styles.kanoLabel}>
                                 {feature.title} ({percentage.toFixed(2)}%)
                             </span>
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
+                        );
+                    })}
+                </div>
+            );
+        }
+    }
 
 
     return (
@@ -420,7 +415,8 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                                 <button className={styles.nextButton} onClick={goToNextStep}>
                                     Далее
                                 </button>
-                                <button className={styles.prevButton} onClick={goToPreviousStep} disabled={step === 1}>
+                                <button className={styles.prevButton} onClick={goToPreviousStep}
+                                        disabled={Number(step) === 1}>
                                     Назад
                                 </button>
                             </div>

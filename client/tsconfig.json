@@ -1,23 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "esnext", // можно использовать esnext для поддержки современных модулей
-    "strict": true,
+    "jsx": "react-jsx", // для проектов с React 17 и новее
     "esModuleInterop": true,
-    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "module": "esnext",
+    "target": "es6",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "paths": {
-      "*": ["node_modules/*", "src/types/*"]
-    }
+    "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*",
-    "client/**/*",
-    "api/**/*",
-    "global.d.ts"
-  ],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"]
 }
