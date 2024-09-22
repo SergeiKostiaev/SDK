@@ -11,7 +11,7 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: 'http://localhost:5174', //5173
+  origin: 'http://31.172.64.158:5174', //5173
   methods: 'GET,POST,PUT,DELETE', // Методы HTTP, которые разрешены
   credentials: true // Если нужно передавать cookies или авторизационные заголовки
 }));
@@ -272,5 +272,5 @@ app.get('*', (req, res) => {
 
 // Запуск сервера
 app.listen(port, () => {
-  console.log(`Сервер запущен на http://localhost:${port}`);
+  console.log(`Сервер запущен на http://31.172.64.158:${port}`);
 });
