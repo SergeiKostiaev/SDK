@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 const db = require('./db');
 const functionsRouter = require('./routes/functions');
 const featuresRouter = require('./routes/features');
@@ -10,7 +11,9 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: 'http://localhost:5173' //5173
+  origin: 'http://localhost:5174', //5173
+  methods: 'GET,POST,PUT,DELETE', // Методы HTTP, которые разрешены
+  credentials: true // Если нужно передавать cookies или авторизационные заголовки
 }));
 
 app.use(bodyParser.json());
@@ -236,7 +239,6 @@ app.delete('/api/posts/:id', async (req, res) => {
 });
 
 
-
 // Добавление нового варианта голосования (POST /api/vote)
 app.post('/api/vote', async (req, res) => {
   const { id_functions, title } = req.body;
@@ -259,6 +261,13 @@ app.post('/api/vote', async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Ошибка базы данных' });
   }
+});
+
+// Статические файлы из директории dist
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Запуск сервера

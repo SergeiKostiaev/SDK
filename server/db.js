@@ -5,9 +5,9 @@ const mysql = require('mysql2');
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: '',
+  password: 'root',
   database: 't1',
-  // port: 3306,
+  port: 3306,
 });
 
 pool.execute('SELECT 1 + 1 AS result', (err, results) => {
