@@ -150,6 +150,11 @@
   justify-content: space-between;
   flex-direction: column;
 }
+.modalOverlay .modalContent .featureItem .voteMessage {
+  display: flex;
+  justify-content: flex-end;
+  color: green;
+}
 .modalOverlay .modalContent .featureItem .smileyContainer {
   display: flex;
   justify-content: flex-end;
