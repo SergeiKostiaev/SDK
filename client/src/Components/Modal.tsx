@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './Modal.module.sass';
 import {fetchVotesData, getFunctions, voteForPost} from '../../api/posts';
 import CsvDownload from "../../csv/CsvDownload";
+import Cookies from 'js-cookie';
 
 interface Feature {
     id: number;
@@ -26,10 +27,21 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [features, setFeatures] = useState<Feature[]>([]);
-    const [emailError, setEmailError] = useState<string>('');
     const [votedFunctions, setVotedFunctions] = useState<Set<number>>(new Set());
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     // const [newCategoryTitle, setNewCategoryTitle] = useState<string>('');
+    const [userId, setUserId] = useState(null);
+
+    useEffect(() => {
+        // Извлечение userId из cookies
+        const userIdFromCookie:any = Cookies.get('userId');
+
+        if (userIdFromCookie) {
+            setUserId(userIdFromCookie);
+        } else {
+            console.log('User ID not found in cookies');
+        }
+    }, []);
 
     useEffect(() => {
         if (email) {
@@ -105,9 +117,16 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         }
     };
 
-    const handleVote = async (feature:any, rating:any) => {
+    const handleVote = async (feature:any, rating:any ) => {
         try {
-            const userId = 2; // Замените на динамический userId
+            // const userId = Cookies.get('userId');
+            //
+            // if (!userId) {
+            //     console.error('User ID не найден в cookies');
+            //     return;
+            // }
+            const userId = 2;
+
             const response = await fetch('https://api.ipify.org?format=json');
             const { ip } = await response.json();
 
@@ -155,27 +174,6 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         }
     };
 
-
-    // Обновляем логику валидации
-    const isFormValid = () => {
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return name.trim().length >= 2 && emailPattern.test(email);
-    };
-
-// Функция для обработки изменения имени
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
-
-// Функция для обработки изменения email
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const emailValue = e.target.value;
-        setEmail(emailValue);
-
-        // Проверка правильности введенного email
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        setEmailError(emailPattern.test(emailValue) ? '' : 'Указан неверный Емейл');
-    };
-
-    // const isFormValid = () => name.trim() !== '' && emailError === '';
 
     const getSmileyIcon = (rating: number) => {
         const smileys: Record<number, string> = {
@@ -265,14 +263,6 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         fetchVotesData();
     }, []);
 
-    // const calculatePercentage = (featureId: number) => {
-    //     const totalVotes = votesData.length; // Предположим, у вас есть доступ к данным голосов
-    //     const featureVotes = votesData.filter((vote: VoteData) => vote.id_functions === featureId).length;
-    //
-    //     return totalVotes > 0 ? ((featureVotes / totalVotes) * 100).toFixed(2) : 0;
-    // };
-
-
 
     class KanoModel extends React.Component<{ features: any, votesData: any }> {
         render() {
@@ -343,46 +333,6 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
 
                 {step === 1 && (
                     <>
-                        <h2 className={styles.welc_title}>Примите участие в голосовании</h2>
-                        <p className={styles.welc_about}>Введите свое имя и E-mail</p>
-                        <div className={styles.formGroupInpt}>
-                            <div className={styles.formGroup}>
-                                <label>Имя</label>
-                                <input
-                                    type="text"
-                                    value={name}
-                                    onChange={handleNameChange}
-                                    placeholder="Иван"
-                                    className={styles.inpt_name}
-                                />
-                                {name.trim().length < 2 && <p className={`${styles.error} ${styles.show}`}>Имя должно содержать не менее 2 символов</p>}
-                            </div>
-
-                            <div className={styles.formGroup}>
-                                <label>Email</label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={handleEmailChange}
-                                    placeholder="Введите ваш email"
-                                    className={styles.inpt_name}
-                                />
-                                {emailError && <p className={`${styles.error} ${styles.show}`}>{emailError}</p>}
-                            </div>
-                        </div>
-
-                        {isFormValid() && (
-                            <div className={styles.nextButtonContainer}>
-                                <button className={styles.nextButton} onClick={goToNextStep}>
-                                    Далее
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
-
-                {step === 2 && (
-                    <>
                         <h2 className={styles.welc_title}>Голосование</h2>
                         <p className={styles.welc_about}>Выберите функционал для голосования</p>
                         <div className={styles.functionList}>
@@ -424,7 +374,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                     </>
                 )}
 
-                {step === 3 && selectedCategory && (
+                {step === 2 && selectedCategory && (
                     <>
                         <h2 className={styles.welc_title}>Голосование за: {selectedCategory.title}</h2>
                         <p className={styles.welc_about}>Оставьте свой голос за понравившуюся вам функцию</p>
@@ -447,8 +397,8 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                                                                 className={`${styles.smiley} ${styles.clickable}`}
                                                                 onClick={() => handleVote(feature, rating)}
                                                             >
-                                                                {getSmileyIcon(rating)}
-                                                            </span>
+                                                {getSmileyIcon(rating)}
+                                            </span>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -463,14 +413,8 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                                                     <p>{feature.title}</p>
                                                     <p className={styles.about_title}>{feature.description}</p>
                                                 </div>
-                                                <div className={styles.smileyContainer}>
-                                                    <div className={styles.smileyWrapper}>
-                                                        {[1, 2, 3, 4, 5].map(rating => (
-                                                            <span key={rating} className={`${styles.smiley} ${styles.disabled}`}>
-                                                                {getSmileyIcon(rating)}
-                                                            </span>
-                                                        ))}
-                                                    </div>
+                                                <div className={styles.voteMessage}>
+                                                    <p>Ваш голос отправлен!</p> {/* Сообщение вместо смайлов */}
                                                 </div>
                                             </div>
                                         ))}
@@ -486,7 +430,8 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                         </div>
                     </>
                 )}
-                {step === 4 && (
+
+                {step === 3 && (
                     <>
                         <h2 className={styles.welc_title}>Dashboard</h2>
                         <p className={styles.welc_about}>В этом разделе вы можете увидеть аналитику</p>
