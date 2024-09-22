@@ -26,7 +26,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [features, setFeatures] = useState<Feature[]>([]);
-    const [emailError, setEmailError] = useState<string>('');
+    // const [emailError, setEmailError] = useState<string>('');
     const [votedFunctions, setVotedFunctions] = useState<Set<number>>(new Set());
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     // const [newCategoryTitle, setNewCategoryTitle] = useState<string>('');
@@ -59,7 +59,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     useEffect(() => {
         const fetchFeatures = async () => {
             try {
-                const response = await fetch('http://localhost:3000/api/features');
+                const response = await fetch('http://31.172.64.158:3000/api/features');
                 if (!response.ok) {
                     throw new Error('Ошибка при загрузке фич');
                 }
@@ -81,21 +81,6 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         setVotedFunctions(new Set(votedFunctionsFromStorage));
     }, []);
 
-    // Проверка на администратора при изменении email
-    // useEffect(() => {
-    //     if (email) {
-    //         const checkAdminStatus = async () => {
-    //             try {
-    //                 const isAdminUser = await checkIfAdmin(email);
-    //                 setIsAdmin(isAdminUser);
-    //             } catch (error) {
-    //                 console.error('Ошибка при проверке статуса администратора:', error);
-    //             }
-    //         };
-    //
-    //         checkAdminStatus();
-    //     }
-    // }, [email]);
 
     // Фильтрация фич по категории
     const filteredFeatures = features.filter(feature => feature.id_functions === selectedCategory?.id);
@@ -273,7 +258,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
 
     useEffect(() => {
         const fetchVotesData = async () => {
-            const response = await fetch('http://localhost:3000/api/votes'); // ваш API
+            const response = await fetch('http://31.172.64.158:3000/api/votes'); // ваш API
             const data = await response.json();
             setVotesData(data);
         };
@@ -379,9 +364,6 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                             <div className={styles.nextButtonContainer}>
                                 <button className={styles.nextButton} onClick={goToNextStep}>
                                     Далее
-                                </button>
-                                <button className={styles.prevButton} onClick={goToPreviousStep} disabled={step === 1}>
-                                    Назад
                                 </button>
                             </div>
                         )}
