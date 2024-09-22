@@ -1,5 +1,5 @@
 import React from "react";
-import { fetchVotesData } from '../api/posts.ts';
+import { fetchVotesData } from '../api/posts';
 import styles from '../src/Components/Modal.module.sass';
 
 const CsvDownload = () => {
@@ -14,10 +14,20 @@ const CsvDownload = () => {
       }
 
       // Создаем CSV строку
-      const csvRows = [];
+      interface VoteData {
+        id: number;
+        id_user: number;
+        id_functions: number;
+        id_vote: number;
+        status: string;
+        ip: string;
+        created_at: Date;
+      }
+
+      const csvRows: string[] = [];
 
       // Обрабатываем каждую запись для создания таблицы
-      votesData.forEach(row => {
+      votesData.forEach((row: VoteData) => {
         const headers = ["id", "id_user", "id_functions", "id_vote", "status", "ip", "created_at"];
         const values = [
           row.id,

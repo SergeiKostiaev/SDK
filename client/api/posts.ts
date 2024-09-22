@@ -17,7 +17,7 @@ export const getFunctions = async () => {
 };
 
 // Голосование за пост
-export const voteForPost = async (voteData) => {
+export const voteForPost = async (voteData:any) => {
     try {
         console.log('Данные для отправки на сервер:', voteData);
         const response = await fetch('http://localhost:3000/api/votes', {
