@@ -1,6 +1,6 @@
 import React from "react";
-import { fetchVotesData } from '../api/posts';
-import styles from '../src/Components/Modal.module.sass';
+import { fetchVotesData } from '../api/posts.ts';
+import styles from '../Components/Modal.module.sass';
 
 const CsvDownload = () => {
   const handleDownload = async () => {

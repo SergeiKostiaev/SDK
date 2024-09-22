@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Modal.module.sass';
-import {fetchVotesData, getFunctions, voteForPost} from '../../api/posts';
-import CsvDownload from "../../csv/CsvDownload";
+import {fetchVotesData, getFunctions, voteForPost} from '../api/posts';
+import CsvDownload from "../csv/CsvDownload";
 import Cookies from 'js-cookie';
 
 interface Feature {
