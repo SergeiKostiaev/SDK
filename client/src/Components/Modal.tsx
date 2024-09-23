@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
-import {fetchVotesData, getFunctions, voteForPost} from '../../api/posts.js';
+import {fetchVotesData, getFunctions, voteForPost} from '../api/posts';
 import styles from './Modal.module.sass';
-import CsvDownload from "../../csv/CsvDownload.jsx";
+import CsvDownload from "../csv/CsvDownload";
 
 interface Feature {
     id: number;
@@ -26,7 +27,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [features, setFeatures] = useState<Feature[]>([]);
-    // const [emailError, setEmailError] = useState<string>('');
+    const [emailError, setEmailError] = useState<string>('');
     const [votedFunctions, setVotedFunctions] = useState<Set<number>>(new Set());
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     // const [newCategoryTitle, setNewCategoryTitle] = useState<string>('');
@@ -90,7 +91,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
     const goToPreviousStep = () => setStep(step - 1);
 
 
-    const getFeatureDetails = async (featureId) => {
+    const getFeatureDetails = async (featureId: number) => {
         try {
             const response = await fetch(`http://localhost:3000/api/features/${featureId}`);
             if (!response.ok) {
@@ -105,7 +106,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         }
     };
 
-    const handleVote = async (feature, rating) => {
+    const handleVote = async (feature: FeatureType, rating: number) => {
         try {
             const userId = 2; // Замените на динамический userId
             const response = await fetch('https://api.ipify.org?format=json');
@@ -131,12 +132,11 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
             }
 
             const voteData = {
-                id_functions: feature.id,
-                id_user: userId,
+                postId: featureDetails.id_functions, // Добавляем postId
+                userId: userId, // Можно передать userId или оставить undefined
                 status: rating,
-                id_vote: featureDetails.id_vote, // Используем id_vote (или id фичи)
                 ip,
-                created_at: new Date()
+                created_at: new Date().toISOString(), // Форматируем дату в строку
             };
 
             console.log('Отправляемые данные голосования:', voteData);
@@ -188,7 +188,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         return smileys[rating] || '';
     };
 
-    const handleDownload = async (functionId) => {
+    const handleDownload = async (functionId: number) => {
         // Проверка, является ли пользователь администратором
         if (!isAdmin) {
             console.error('Только администраторы могут загружать данные.');
@@ -204,7 +204,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
             }
 
             // Фильтруем данные по id_functions
-            const filteredVotes = votesData.filter(vote => vote.id_functions === functionId);
+            const filteredVotes: VoteType[] = votesData.filter((vote: VoteType) => vote.id_functions === functionId);
 
             if (filteredVotes.length === 0) {
                 console.error('Нет голосов для данной функции');
@@ -212,7 +212,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
             }
 
             // Создаем CSV строку
-            const csvRows = [];
+            const csvRows:string[] = [];
 
             // Обрабатываем каждую запись для создания таблицы
             filteredVotes.forEach(row => {
@@ -256,6 +256,16 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
 
     const [votesData, setVotesData] = useState([]);
 
+    type VoteType = {
+        id: number;
+        id_functions: number;
+        id_user: number;
+        id_vote: number;
+        status: number;
+        ip: string;
+        created_at: string;
+    };
+
     useEffect(() => {
         const fetchVotesData = async () => {
             const response = await fetch('http://31.172.64.158:3000/api/votes'); // ваш API
@@ -265,56 +275,11 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
         fetchVotesData();
     }, []);
 
-    const calculatePercentage = (featureId) => {
-        const totalVotes = votesData.length; // предположим, у вас есть доступ к данным голосов
-        const featureVotes = votesData.filter(vote => vote.id_functions === featureId).length;
-
-        return totalVotes > 0 ? ((featureVotes / totalVotes) * 100).toFixed(2) : 0;
+    type FeatureType = {
+        id: number;
+        title: string;
+        description: string;
     };
-
-    const KanoModel = ({ features, votesData }) => {
-        const totalVotes = votesData.length;
-
-        const calculatePercentage = (featureId) => {
-            const featureVotes = votesData.filter(vote => vote.id_functions === featureId).length;
-            return totalVotes > 0 ? (featureVotes / totalVotes) * 100 : 0;
-        };
-
-        return (
-            <div className={styles.kanoContainer}>
-                {features.map(feature => {
-                    const percentage = calculatePercentage(feature.id);
-                    let barColor = '#007bff';
-                    if (percentage > 75) {
-                        barColor = '#0056b3';
-                    } else if (percentage > 50) {
-                        barColor = '#007bff';
-                    } else if (percentage > 20) {
-                        barColor = '#66b3ff';
-                    } else {
-                        barColor = '#e0e0e0';
-                    }
-
-                    return (
-                        <div key={feature.id} className={styles.kanoItem}>
-                            <div
-                                className={styles.kanoBar}
-                                style={{
-                                    width: `${percentage}%`,
-                                    backgroundColor: barColor
-                                }}
-                            >
-                            <span className={styles.kanoLabel}>
-                                {feature.title} ({percentage.toFixed(2)}%)
-                            </span>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
 
     return (
         <div className={styles.modalOverlay}>
@@ -421,18 +386,6 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
                         </div>
                         <div className={styles.buttonContainer}>
                             <button className={styles.prevButton} onClick={goToPreviousStep}>
-                                Назад
-                            </button>
-                        </div>
-                    </>
-                )}
-                {step === 3 && (
-                    <>
-                        <h2 className={styles.welc_title}>Dashboard</h2>
-                        <p className={styles.welc_about}>В этом разделе вы можете увидеть аналитику</p>
-                        <KanoModel features={features} votesData={votesData} />
-                        <div className={styles.buttonContainer}>
-                            <button className={styles.prevButton} onClick={() => setStep(1)}>
                                 Назад
                             </button>
                         </div>

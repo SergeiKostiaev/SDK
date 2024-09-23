@@ -1,12 +1,22 @@
 import React from "react";
-import { fetchVotesData } from '../api/posts.js';
-import styles from '../src/Components/Modal.module.sass';
+import { fetchVotesData } from '../api/posts';
+import styles from '../Components/Modal.module.sass';
 
-const CsvDownload = () => {
+interface VoteRow {
+  id: number;
+  id_user: number;
+  id_functions: number;
+  id_vote: number;
+  status: string;
+  ip: string;
+  created_at: string;
+}
+
+const CsvDownload: React.FC = () => {
   const handleDownload = async () => {
     try {
       // Получаем данные голосования из API
-      const votesData = await fetchVotesData();
+      const votesData: VoteRow[] = await fetchVotesData();
 
       if (!votesData || votesData.length === 0) {
         console.error('Нет данных для экспорта');
@@ -14,11 +24,14 @@ const CsvDownload = () => {
       }
 
       // Создаем CSV строку
-      const csvRows = [];
+      const csvRows: string[] = [];
+
+      // Добавляем заголовки только один раз
+      const headers = ["id", "id_user", "id_functions", "id_vote", "status", "ip", "created_at"];
+      csvRows.push(headers.join(","));
 
       // Обрабатываем каждую запись для создания таблицы
       votesData.forEach(row => {
-        const headers = ["id", "id_user", "id_functions", "id_vote", "status", "ip", "created_at"];
         const values = [
           row.id,
           row.id_user,
@@ -28,14 +41,7 @@ const CsvDownload = () => {
           row.ip,
           row.created_at
         ];
-
-        // Добавляем заголовки и значения в строки CSV
-        headers.forEach((header, index) => {
-          csvRows.push(`${header},${values[index]}`);
-        });
-
-        // Добавляем пустую строку между записями
-        csvRows.push('');
+        csvRows.push(values.join(","));
       });
 
       const csvContent = csvRows.join("\n");
@@ -59,7 +65,7 @@ const CsvDownload = () => {
   return (
       <div>
         <a onClick={handleDownload} className={styles.docs}>
-          <img src="./doc.png" alt="doc"/>
+          <img src="./doc.png" alt="Скачать" />
         </a>
       </div>
   );
