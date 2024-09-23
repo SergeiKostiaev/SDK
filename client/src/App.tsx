@@ -1,5 +1,5 @@
 import './App.sass'
-import Home from "./Pages/Home.tsx";
+import Home from "./Pages/Home";
 
 function App() {
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 const db = require('./db');
 const functionsRouter = require('./routes/functions');
 const featuresRouter = require('./routes/features');
@@ -10,7 +11,9 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: 'http://localhost:5173'
+  origin: 'http://31.172.64.158:5174', //5173
+  methods: 'GET,POST,PUT,DELETE', // Методы HTTP, которые разрешены
+  credentials: true // Если нужно передавать cookies или авторизационные заголовки
 }));
 
 app.use(bodyParser.json());
@@ -23,7 +26,7 @@ app.use('/api/votes', voteRouter);
 app.get('/api/posts', async (req, res) => {
   try {
     const [posts] = await db.query('SELECT * FROM posts');
-    console.log('Полученные посты:', posts);  // Добавьте этот вывод для отладки
+    console.log('Полученные посты:', posts);
     res.json(posts);
   } catch (error) {
     console.error('Ошибка базы данных:', error);
@@ -35,7 +38,6 @@ app.get('/api/posts', async (req, res) => {
 app.get('/api/posts/:id', async (req, res) => {
   const postId = req.params.id;
   try {
-    // Получаем функцию
     const [functionRows] = await db.query('SELECT * FROM functions WHERE id = ?', [postId]);
     if (functionRows.length === 0) {
       return res.status(404).json({ message: 'Функция не найдена' });
@@ -43,7 +45,6 @@ app.get('/api/posts/:id', async (req, res) => {
 
     const func = functionRows[0];
 
-    // Получаем фичи для этой функции
     const [featureRows] = await db.query('SELECT * FROM features WHERE id_functions = ?', [postId]);
 
     // Добавляем фичи к функции
@@ -53,6 +54,43 @@ app.get('/api/posts/:id', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Ошибка базы данных' });
+  }
+});
+
+app.get('/api/votes', async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM votes');
+    if (!results) {
+      console.log('Нет результатов');
+      return res.status(404).send('Нет данных');
+    }
+    res.json(results);
+  } catch (error) {
+    console.error('Ошибка получения данных голосования:', error);
+    res.status(500).send('Ошибка сервера');
+  }
+});
+
+app.get('/api/features/:id', async (req, res) => {
+  const featureId = req.params.id;
+
+  try {
+    const feature = await db.query(`
+            SELECT f.id, f.title, f.description, f.status, f.created_at, f.id_functions, v.id_vote
+            FROM features f
+            LEFT JOIN votes v ON f.id = v.id_functions
+            WHERE f.id = ?
+        `, [featureId]);
+
+    if (feature.length === 0) {
+      return res.status(404).json({ message: 'Фича не найдена' });
+    }
+
+    // Возвращаем данные о фиче и соответствующий id_vote
+    res.json(feature[0]);
+  } catch (error) {
+    console.error('Ошибка при получении данных фичи:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
 
@@ -79,16 +117,16 @@ app.post('/api/votes', async (req, res) => {
   }
 });
 
+
 // Маршрут для проверки email
 app.post('/api/users/is-admin', (req, res) => {
   const { email } = req.body; // Получаем email из тела запроса
 
-  // Проверяем, что email был передан
   if (!email) {
     return res.status(400).json({ error: 'Email обязателен' });
   }
 
-  // console.log('Полученные данные:', req.body); // Для отладки
+  // console.log('Полученные данные:', req.body);
 
   // SQL-запрос для проверки наличия email
   const query = 'SELECT email, role FROM users WHERE email = ? LIMIT 1'; // Получаем email и роль по переданному email
@@ -101,7 +139,7 @@ app.post('/api/users/is-admin', (req, res) => {
 
     // Если результат найден, проверяем роль пользователя
     if (results.length > 0) {
-      const user = results[0]; // Получаем информацию о пользователе
+      const user = results[0];
 
       // Проверяем, если роль = 'admin', то пользователь является администратором
       const isAdmin = user.role === '3';
@@ -201,7 +239,6 @@ app.delete('/api/posts/:id', async (req, res) => {
 });
 
 
-
 // Добавление нового варианта голосования (POST /api/vote)
 app.post('/api/vote', async (req, res) => {
   const { id_functions, title } = req.body;
@@ -226,7 +263,14 @@ app.post('/api/vote', async (req, res) => {
   }
 });
 
+// Статические файлы из директории dist
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 // Запуск сервера
 app.listen(port, () => {
-  console.log(`Сервер запущен на http://localhost:${port}`);
+  console.log(`Сервер запущен на http://31.172.64.158:${port}`);
 });
