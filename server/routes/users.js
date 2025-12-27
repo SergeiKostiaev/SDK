@@ -41,21 +41,5 @@ router.get('/:id', async (req, res) => {
 //   }
 // });
 
-router.post('/posts/:id/votes', async (req, res) => {
-  // const { id } = req.params;
-  const { id_user, id_functions, id_vote, ip } = req.body;
-
-  try {
-    const [result] = await db.query(
-        'INSERT INTO votes (id_functions, id_user, ip, id_vote) VALUES (?, ?, ?, ?)',
-        [id_functions, id_user, ip, id_vote]
-    );
-    res.status(201).json({ message: 'Голос записан' });
-  } catch (error) {
-    console.error('Ошибка записи голоса:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
 
 module.exports = router;

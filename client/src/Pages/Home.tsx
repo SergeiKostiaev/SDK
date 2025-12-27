@@ -1,9 +1,8 @@
-import VoteWidget from "../Components/VoteWidget.tsx";
+import VoteWidget from "../Components/VoteWidget";
 
 const Home = () => {
     return (
         <>
-            <h1>Главная</h1>
             <VoteWidget/>
         </>
     );
