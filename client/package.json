@@ -1,13 +1,16 @@
 {
-  "name": "client",
-  "private": true,
-  "version": "0.0.0",
+  "name": "sdk-vote",
+  "private": false,
+  "version": "0.0.6",
+  "main": "dist/sdk-vote.umd.js",
+  "module": "dist/sdk-vote.es.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -16,7 +19,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
-    "@types/react": "^18.3.3",
+    "@types/react": "^18.3.8",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "eslint": "^9.9.0",
@@ -27,5 +30,17 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"
-  }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "repository": {
+    "type": "git"
+  },
+  "keywords": [
+    "sdk",
+    "vote",
+    "react",
+    "typescript"
+  ]
 }

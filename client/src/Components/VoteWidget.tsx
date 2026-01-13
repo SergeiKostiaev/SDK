@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import Modal from './Modal';
 import styles from './VoteWidget.module.sass';
